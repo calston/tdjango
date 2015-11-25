@@ -49,9 +49,12 @@ class DBMixin(object):
     def delete(self, table, **constraints):
         st = 'DELETE FROM %s ' % table
 
-        ckeys, cvalues = zip(*constraints.items())
-        if ckeys:
-            st += " WHERE %s" % (' AND '.join(['%s=%%s' % (k) for k in ckeys]))
+        if constraints:
+            ckeys, cvalues = zip(*constraints.items())
+            if ckeys:
+                st += " WHERE %s" % (' AND '.join(['%s=%%s' % (k) for k in ckeys]))
+        else:
+            cvalues = []
         
         return self.p.runOperation(st, cvalues)
 

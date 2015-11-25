@@ -13,6 +13,7 @@ setup(
     install_requires=[
         'Twisted',
         'Django',
+        'psycopg2',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
