@@ -223,6 +223,9 @@ class QueryAdapter(object):
 
         defer.returnValue(obj_list)
 
+    def all(self):
+        return self.filter()
+
 class ModelWrapper(object):
     def __init__(self, name, model_obj, manager):
         self._manager = manager

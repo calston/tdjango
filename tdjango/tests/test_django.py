@@ -126,4 +126,18 @@ class Test(unittest.TestCase):
 
         yield rain2.delete()
         
+    @defer.inlineCallbacks
+    def test_objects_filter(self):
+        colors = yield self.db.Color.objects.filter(color='red')
+
+        red = yield self.db.Color.objects.get(color='red')
+        self.assertIn(red, colors)
+
+    @defer.inlineCallbacks
+    def test_objects_all(self):
+        colors = yield self.db.Color.objects.all()
+
+        red = yield self.db.Color.objects.get(color='red')
+        self.assertIn(red, colors)
+
 
