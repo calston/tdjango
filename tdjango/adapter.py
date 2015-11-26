@@ -250,11 +250,15 @@ class ModelWrapper(object):
         self.objects = QueryAdapter(name, self, manager)
     
 class AbstractDjango(db.DBMixin):
-    def __init__(self, app):
+    def __init__(self, app, settings=None):
         self.models = {}
 
         self.modelmod = importlib.import_module('%s.models' % app)
-        app_settings = importlib.import_module('%s.settings' % app)
+
+        if settings:
+            app_settings = importlib.import_module(settings)
+        else:
+            app_settings = importlib.import_module('%s.settings' % app)
 
         db_name = app_settings.DATABASES['default']['NAME']
         db_host = app_settings.DATABASES['default'].get('HOST', 'localhost')

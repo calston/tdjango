@@ -118,6 +118,7 @@ class Test(unittest.TestCase):
 
         yield rainbow.colors.set([green, blue])
 
+        yield rainbow.save()
 
         rain2 = yield self.db.Rainbows.objects.get(name='rgb')
 
