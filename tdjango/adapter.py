@@ -73,7 +73,8 @@ class QueryAdapter(object):
         if foreign:
             for f in foreign:
                 field_ref = getattr(obj, f)
-                val['%s_id' % f] = field_ref.id
+                if field_ref:
+                    val['%s_id' % f] = field_ref.id
 
         del val['id']
         id = yield self._manager.runInsert(self._table, val)
