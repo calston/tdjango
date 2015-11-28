@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="tdjango",
-    version='0.0.2',
+    version='0.0.4',
     url='http://github.com/calston/tdjango',
     license='MIT',
     description="A Twisted interface to the Django ORM",

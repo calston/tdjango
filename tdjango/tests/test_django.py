@@ -11,6 +11,10 @@ class Test(unittest.TestCase):
     def setUp(self):
         self.db = DjangoORM('tdjango.tests.testapp')
 
+        yield self.db.delete('testapp_rainbows_colors')
+        yield self.db.delete('testapp_rainbows')
+        yield self.db.delete('testapp_animals')
+        yield self.db.delete('testapp_color')
         yield self.db.delete('auth_user')
 
         yield self.db.Color.objects.create(
@@ -18,14 +22,26 @@ class Test(unittest.TestCase):
             r=255
         ).save()
 
-        yield self.db.Color.objects.create(
+        blue = yield self.db.Color.objects.create(
             color='blue', 
             b=255
-        ).save()
+        )
+        blue.save()
 
-        yield self.db.User.objects.create(
+        john = self.db.User.objects.create(
             username='john'
-        ).save()
+        )
+        yield john.save()
+
+        elephant = self.db.Animals.objects.create(
+            name='Blue elephant',
+            weight=10000,
+            owner=john,
+            color=blue
+        )
+
+        yield elephant.save()
+
 
 
     @defer.inlineCallbacks
@@ -142,3 +158,14 @@ class Test(unittest.TestCase):
         self.assertIn(red, colors)
 
 
+    @defer.inlineCallbacks
+    def test_foreign_get(self):
+        blue = yield self.db.Color.objects.get(color='blue')
+
+        elephant = yield self.db.Animals.objects.get(color=blue)
+
+        self.assertEquals(elephant.name, "Blue elephant")
+
+        elephants = yield self.db.Animals.objects.filter(color=blue)
+
+        self.assertEquals(elephants[0].name, "Blue elephant")

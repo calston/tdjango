@@ -77,6 +77,7 @@ class QueryAdapter(object):
                     val['%s_id' % f] = field_ref.id
 
         del val['id']
+        
         id = yield self._manager.runInsert(self._table, val)
 
         obj.id = id[0]
@@ -197,10 +198,20 @@ class QueryAdapter(object):
         m.save = lambda: self.update(m)
 
         defer.returnValue(m)
+
+    def _remap_foreign(self, foreign, d):
+        # Re-map foreign where clauses
+        for f in foreign:
+            if f in d:
+                id = d[f].id
+                del d[f]
+                d['%s_id' % f] = id
        
     @defer.inlineCallbacks
     def get(self, **kw):
         fields, foreign, many = self._get_field_list()
+
+        self._remap_foreign(foreign, kw)
 
         obj = yield self._manager.selectOne(self._table, fields, **kw)
 
@@ -214,6 +225,9 @@ class QueryAdapter(object):
     @defer.inlineCallbacks
     def filter(self, **kw):
         fields, foreign, many = self._get_field_list()
+
+        self._remap_foreign(foreign, kw)
+
         objs = yield self._manager.select(self._table, fields, **kw)
 
         obj_list = []
