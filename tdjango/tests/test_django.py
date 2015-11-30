@@ -26,7 +26,7 @@ class Test(unittest.TestCase):
             color='blue', 
             b=255
         )
-        blue.save()
+        yield blue.save()
 
         john = self.db.User.objects.create(
             username='john'
@@ -41,8 +41,6 @@ class Test(unittest.TestCase):
         )
 
         yield elephant.save()
-
-
 
     @defer.inlineCallbacks
     def tearDown(self):
