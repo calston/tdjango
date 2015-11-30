@@ -76,6 +76,8 @@ class QueryAdapter(object):
                 if field_ref:
                     val['%s_id' % f] = field_ref.id
 
+        print val, fields, foreign, many
+
         del val['id']
         
         id = yield self._manager.runInsert(self._table, val)
