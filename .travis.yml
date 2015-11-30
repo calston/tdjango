@@ -10,4 +10,4 @@ install:
 services:
     - postgresql
 script:
-    - trial rhumba
+    - trial tdjango
