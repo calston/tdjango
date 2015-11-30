@@ -49,6 +49,13 @@ class QueryAdapter(object):
         return fields, foreign, many
 
     def _bind_many(self, obj, many):
+        # Add foo_set queries
+        if self._name in self._manager.rev_sets:
+            set_links = self._manager.rev_sets[self._name]
+            for link in set_links:
+                link_mgr = getattr(self._manager, link).objects
+                setattr(obj, '%s_set' % link.lower(), link_mgr)
+
         for f in many:
             setattr(obj, f, ManyManyProxy(self, obj, f))
 
@@ -250,9 +257,20 @@ class ModelWrapper(object):
         fields = self._model._meta.fields
         self._fields = {}
 
+        foreign_sets = []
+
         # Yank out model fields
         for f in fields:
-            self._fields[f.name] = (f.get_internal_type(), f)
+            t = f.get_internal_type()
+            self._fields[f.name] = (t, f)
+            if t == 'ForeignKey':
+                related_name = f.related.to.__name__
+                
+                if not(related_name in self._manager.rev_sets):
+                    self._manager.rev_sets[related_name] = [self.name]
+                else:
+                    if not self.name in self._manager.rev_sets[related_name]:
+                        self._manager.rev_sets[related_name].append(self.name)
 
         # Many to many fields are stored separately
         if self._model._meta.many_to_many:
@@ -262,11 +280,18 @@ class ModelWrapper(object):
                 # Snap off the crazy Django relation manager
                 setattr(self._model, f.name, [])
 
+        # Snap off more relation manager
+        for attr in dir(self._model):
+            if attr.endswith('_set'):
+                setattr(self._model, attr, None)
+
         self.objects = QueryAdapter(name, self, manager)
     
 class AbstractDjango(db.DBMixin):
     def __init__(self, app, settings=None):
         self.models = {}
+
+        self.rev_sets = {}
 
         self.modelmod = importlib.import_module('%s.models' % app)
 

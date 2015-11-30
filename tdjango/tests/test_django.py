@@ -17,27 +17,28 @@ class Test(unittest.TestCase):
         yield self.db.delete('testapp_color')
         yield self.db.delete('auth_user')
 
-        yield self.db.Color.objects.create(
+        self.red = self.db.Color.objects.create(
             color='red', 
             r=255
-        ).save()
+        )
+        yield self.red.save()
 
-        blue = yield self.db.Color.objects.create(
+        self.blue = yield self.db.Color.objects.create(
             color='blue', 
             b=255
         )
-        yield blue.save()
+        yield self.blue.save()
 
-        john = self.db.User.objects.create(
+        self.john = self.db.User.objects.create(
             username='john'
         )
-        yield john.save()
+        yield self.john.save()
 
         elephant = self.db.Animals.objects.create(
             name='Blue elephant',
             weight=10000,
-            owner=john,
-            color=blue
+            owner=self.john,
+            color=self.blue
         )
 
         yield elephant.save()
@@ -88,14 +89,11 @@ class Test(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_relations(self):
-        red = yield self.db.Color.objects.get(color='red')
-        john = yield self.db.User.objects.get(username='john')
-        
         snake = self.db.Animals.objects.create(
             name='Red snake',
             weight=1,
-            owner=john,
-            color=red
+            owner=self.john,
+            color=self.red
         )
 
         yield snake.save()
@@ -105,7 +103,7 @@ class Test(unittest.TestCase):
         mysnake = yield self.db.Animals.objects.get(name='Red snake')
         
         self.assertEquals(mysnake.id, id)
-        self.assertEquals(mysnake.owner, john)
+        self.assertEquals(mysnake.owner, self.john)
         self.assertEquals(mysnake.color, red)
         self.assertEquals(mysnake.color.id, red.id)
         self.assertEquals(mysnake.color.r, 255)
@@ -165,5 +163,11 @@ class Test(unittest.TestCase):
         self.assertEquals(elephant.name, "Blue elephant")
 
         elephants = yield self.db.Animals.objects.filter(color=blue)
+
+        self.assertEquals(elephants[0].name, "Blue elephant")
+
+    @defer.inlineCallbacks
+    def test_set_reverse_query(self):
+        elephants = yield self.blue.animals_set.all()
 
         self.assertEquals(elephants[0].name, "Blue elephant")
