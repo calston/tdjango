@@ -27,7 +27,7 @@ def main():
 
 
     # .all() is a synonym for .filter(), which supports the same syntax as get
-    # but NOT more complex query types (sorry..)
+    # but only some queries (__gte, __lte, __lt, etc) but not chained queries
     mypencils = yield mydb.Pencil.objects.all()
 
     # ForeignKey and ManyToMany work (mostly) as expected

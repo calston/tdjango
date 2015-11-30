@@ -17,14 +17,21 @@ class Test(unittest.TestCase):
         yield self.db.delete('testapp_color')
         yield self.db.delete('auth_user')
 
+        self.yellow = self.db.Color.objects.create(
+            color='yellow',
+            r=255,
+            g=255
+        )
+        yield self.yellow.save()
+
         self.red = self.db.Color.objects.create(
-            color='red', 
+            color='red',
             r=255
         )
         yield self.red.save()
 
         self.blue = yield self.db.Color.objects.create(
-            color='blue', 
+            color='blue',
             b=255
         )
         yield self.blue.save()
@@ -114,8 +121,8 @@ class Test(unittest.TestCase):
         
         self.assertEquals(mysnake.id, id)
         self.assertEquals(mysnake.owner, self.john)
-        self.assertEquals(mysnake.color, red)
-        self.assertEquals(mysnake.color.id, red.id)
+        self.assertEquals(mysnake.color, self.red)
+        self.assertEquals(mysnake.color.id, self.red.id)
         self.assertEquals(mysnake.color.r, 255)
 
     @defer.inlineCallbacks
@@ -189,3 +196,10 @@ class Test(unittest.TestCase):
 
         self.assertEquals(rainbows[0].name, 'rg')
 
+    @defer.inlineCallbacks
+    def test_query(self):
+        reds = yield self.db.Color.objects.filter(r__gt=0)
+        self.assertEquals(reds[0].r, 255)
+
+        reds = yield self.db.Color.objects.filter(r__lte=1000, r__gt=0)
+        self.assertEquals(reds[0].r, 255)

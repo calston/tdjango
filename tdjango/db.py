@@ -8,6 +8,29 @@ class DBMixin(object):
 
         r = txn.fetchall()
 
+        self.whereFuncs = {
+            #'in': 
+            'gt': lambda k, v: ("%s > %%%%s" % k, v),
+            'gte': lambda k, v: ("%s >= %%%%s" % k, v),
+            'lt': lambda k, v: ("%s < %%%%s" % k, v),
+            'lte': lambda k, v: ("%s <= %%%%s" % k, v),
+            'startswith': lambda k, v: ("%s LIKE '%%%%s%%%%'" % k, v),
+            'istartswith': lambda k, v: ("%s ILIKE '%%%%s%%%%'" % k, v),
+            'endswith': lambda k, v: ("%s LIKE '%%%%%%%%s'" % k, v),
+            'iendswith': lambda k, v: ("%s ILIKE '%%%%%%%%s'" % k, v),
+            'contains': lambda k, v: ("%s LIKE '%%%%%%%%s%%%%'" % k, v),
+            'icontains': lambda k, v: ("%s ILIKE '%%%%%%%%s%%%%'" % k, v),
+            'range': lambda k, v: ("%s BETWEEN %%%%s AND %%%%s" % k, v),
+            #'year': lambda 
+            #'month':
+            #'day':
+            #'week_day':
+            #'hour':
+            #'minute':
+            #'second':
+            'isnull': lambda k, v: (v and "%s IS NULL" or "%s IS NOT NULL", None)
+        }
+
         if r:
             return r[0]
         else:
@@ -16,7 +39,6 @@ class DBMixin(object):
     def fetchOne(self, *a, **kw):
         " Fetch one row only with this query "
         return self.p.runInteraction(self._fetchOneTxn, *a, **kw)
-
     
     def runInsert(self, table, keys):
         " Builds a simple INSERT statement"
@@ -63,8 +85,21 @@ class DBMixin(object):
         q = []
         args = []
         for k, v in kw.items():
-            q.append('%s=%%%%s' % k)
-            args.append(v)
+            if "__" in k:
+                qtype = k.rsplit('__', 1)[-1]
+                if qtype in self.whereFuncs:
+                    key = k.rsplit('__', 1)[0]
+                    clause, val = self.whereFuncs[qtype](key, v)
+                    q.append(clause)
+
+                    if val is not None:
+                        args.append(val)
+                else:
+                    raise Exception(
+                        "Query type %s not implemented in keyword %s" % (qtype, k))
+            else:
+                q.append('%s=%%%%s' % k)
+                args.append(v)
 
         query = "SELECT %s FROM %s" 
 
