@@ -118,7 +118,7 @@ class Test(unittest.TestCase):
             color='green', 
             g=255
         )
-        green.save()
+        yield green.save()
 
         rainbow = self.db.Rainbows.objects.create(
             name='rgb'
