@@ -36,6 +36,8 @@ def main():
 
     yield pencilcase.pencils.set(mypencils)
 
+    # Get related sets
+    yield green_pencil.pencilcase_set.all()
 
     # And lastly you can delete things
     yield pencilcase.delete()

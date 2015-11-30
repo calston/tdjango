@@ -43,6 +43,16 @@ class Test(unittest.TestCase):
 
         yield elephant.save()
 
+        self.rainbow_rb = self.db.Rainbows.objects.create(
+            name='rg'
+        )
+
+        yield self.rainbow_rb.save()
+
+        yield self.rainbow_rb.colors.add(self.red)
+        yield self.rainbow_rb.colors.add(self.blue)
+
+
     @defer.inlineCallbacks
     def tearDown(self):
         # Truncate all the tables
@@ -168,6 +178,14 @@ class Test(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_set_reverse_query(self):
+        # Single foreign key
         elephants = yield self.blue.animals_set.all()
 
         self.assertEquals(elephants[0].name, "Blue elephant")
+
+        # ManyToMany keys
+
+        rainbows = yield self.blue.rainbows_set.all()
+
+        self.assertEquals(rainbows[0].name, 'rg')
+
